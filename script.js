@@ -1,5 +1,44 @@
+const THEMES = [
+  { id: "dark", name: "Negro", colors: ["#080808", "#ffffff"] },
+  { id: "light", name: "Blanco", colors: ["#f6f6f7", "#111214"] },
+  { id: "purple", name: "Morado", colors: ["#1b0f2e", "#b06bff"] },
+  { id: "ocean", name: "Azul OcÃ©ano", colors: ["#031c2e", "#33b6ff"] },
+  { id: "sunset", name: "Atardecer", colors: ["#2e0f1f", "#ff8a5b"] },
+  { id: "forest", name: "Bosque", colors: ["#07130c", "#3fdc84"] },
+  { id: "crimson", name: "Rojo Oscuro", colors: ["#150607", "#ff4d5e"] },
+  { id: "synthwave", name: "Synthwave", colors: ["#1a0b2e", "#ff4fd8"] },
+  { id: "gold", name: "Dorado", colors: ["#0c0a04", "#e6b855"] },
+  { id: "mint", name: "Menta", colors: ["#eefaf5", "#17b381"] },
+  { id: "bubblegum", name: "Rosa Chicle", colors: ["#2b0e22", "#ff5cb8"] }
+];
+
+const THEME_KEY = "djgeeorge_theme";
+
+function applyTheme(id) {
+  if (id === "dark") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", id);
+  localStorage.setItem(THEME_KEY, id);
+  document.querySelectorAll(".theme-card").forEach(c => c.classList.toggle("selected", c.dataset.theme === id));
+}
+
+function buildThemeGrid() {
+  const grid = document.getElementById("themeGrid");
+  if (!grid) return;
+  const saved = localStorage.getItem(THEME_KEY) || "dark";
+  grid.innerHTML = THEMES.map(t => `
+    <button class="theme-card ${t.id === saved ? "selected" : ""}" data-theme="${t.id}">
+      <div class="theme-swatch" style="background:linear-gradient(135deg, ${t.colors[0]}, ${t.colors[1]})"></div>
+      <div class="theme-name">${t.name}</div>
+    </button>`).join("");
+  grid.querySelectorAll(".theme-card").forEach(btn => btn.onclick = () => applyTheme(btn.dataset.theme));
+}
+
+(function initTheme() {
+  applyTheme(localStorage.getItem(THEME_KEY) || "dark");
+})();
+
 const CONFIG = {
-  jorge: { name: "PLAYLIST JORGE", desc: "Tu música personal", manifest: "playlist_jorge/library.json" },
+  jorge: { name: "PLAYLIST JORGE", desc: "Tu mÃºsica personal", manifest: "playlist_jorge/library.json" },
   djgeeorge: { name: "DJGEEORGE", desc: "Mashups, edits y producciones de DJGEEORGE", manifest: "playlist_djgeeorge/library.json" }
 };
 
@@ -63,7 +102,7 @@ function render() {
     const realIndex = list.indexOf(s);
     const active = realIndex === state.current;
     return `<div class="song ${active ? "active" : ""}" data-i="${realIndex}">
-      <div class="num">${active && !audio.paused ? "▶" : i + 1}</div>
+      <div class="num">${active && !audio.paused ? "â–¶" : i + 1}</div>
       <div class="song-main">
         ${s.cover ? `<img class="thumb" src="${esc(s.cover)}" alt="">` : `<div class="thumb"></div>`}
         <div>
@@ -72,7 +111,7 @@ function render() {
         </div>
       </div>
       <div class="album">${esc(s.album || "")}</div>
-      <div class="song-time">${s.duration ? fmt(Number(s.duration)) : "—"}</div>
+      <div class="song-time">${s.duration ? fmt(Number(s.duration)) : "â€”"}</div>
     </div>`;
   }).join("");
 
@@ -106,7 +145,7 @@ function load(i, auto = false) {
 async function play() {
   if (state.current < 0 && base().length) load(0);
   try { await audio.play(); }
-  catch { show("Pulsa ▶ para iniciar la reproducción."); }
+  catch { show("Pulsa â–¶ para iniciar la reproducciÃ³n."); }
 }
 
 function next() {
@@ -164,14 +203,20 @@ audio.ontimeupdate = () => {
     el.elapsed.textContent = fmt(audio.currentTime);
   }
 };
-audio.onplay = () => { el.play.textContent = "Ⅱ"; render(); };
-audio.onpause = () => { el.play.textContent = "▶"; render(); };
+audio.onplay = () => { el.play.textContent = "â…¡"; render(); };
+audio.onpause = () => { el.play.textContent = "â–¶"; render(); };
 audio.onended = () => state.repeat ? (audio.currentTime = 0, play()) : next();
 
 document.onkeydown = e => {
   if (e.target.matches("input")) return;
   if (e.code === "Space") { e.preventDefault(); audio.paused ? play() : audio.pause(); }
 };
+
+buildThemeGrid();
+const settingsOverlay = $("settingsOverlay");
+$("openSettings").onclick = () => settingsOverlay.classList.add("show");
+$("closeSettings").onclick = () => settingsOverlay.classList.remove("show");
+settingsOverlay.onclick = e => { if (e.target === settingsOverlay) settingsOverlay.classList.remove("show"); };
 
 (async () => {
   await loadManifest("jorge");
