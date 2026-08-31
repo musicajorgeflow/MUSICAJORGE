@@ -1,9 +1,10 @@
 const CONFIG = {
   jorge: { name: "PLAYLIST JORGE", desc: "Tu música personal", manifest: "playlist_jorge/library.json" },
-  djgeeorge: { name: "DJGEEORGE", desc: "Mashups, edits y producciones de DJGEEORGE", manifest: "playlist_djgeeorge/library.json" }
+  djgeeorge: { name: "DJGEEORGE", desc: "Mashups, edits y producciones de DJGEEORGE", manifest: "playlist_djgeeorge/library.json" },
+  online: { name: "ONLINE", desc: "Busca música y escucha un preview al instante", manifest: null }
 };
 
-const state = { playlist: "jorge", data: { jorge: [], djgeeorge: [] }, current: -1, shuffle: false, repeat: false };
+const state = { playlist: "jorge", data: { jorge: [], djgeeorge: [], online: [] }, current: -1, shuffle: false, repeat: false, onlineStatus: "idle" };
 
 const $ = id => document.getElementById(id);
 const audio = $("audio");
@@ -39,6 +40,62 @@ async function loadManifest(key) {
   }
 }
 
+/* ---------- ONLINE: búsqueda vía Deezer (JSONP, sin backend, sin API key) ---------- */
+
+let jsonpCounter = 0;
+function jsonpRequest(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = "deezerCb" + (++jsonpCounter);
+    const script = document.createElement("script");
+    let done = false;
+    const cleanup = () => { delete window[cbName]; script.remove(); };
+    window[cbName] = data => { done = true; cleanup(); resolve(data); };
+    script.onerror = () => { if (!done) { cleanup(); reject(new Error("jsonp error")); } };
+    script.src = url + (url.includes("?") ? "&" : "?") + "output=jsonp&callback=" + cbName;
+    document.body.appendChild(script);
+    setTimeout(() => { if (!done) { cleanup(); reject(new Error("timeout")); } }, 8000);
+  });
+}
+
+let searchTimer = null;
+let searchToken = 0;
+
+async function onlineSearch(query) {
+  const myToken = ++searchToken;
+  if (!query) { state.data.online = []; state.onlineStatus = "idle"; render(); return; }
+
+  state.onlineStatus = "loading";
+  render();
+
+  try {
+    const url = "https://api.deezer.com/search?limit=25&q=" + encodeURIComponent(query);
+    const data = await jsonpRequest(url);
+    if (myToken !== searchToken) return;
+    if (data.error) throw new Error(data.error.message || "Deezer error");
+
+    const list = Array.isArray(data.data) ? data.data : [];
+    state.data.online = list
+      .map(t => ({
+        title: t.title,
+        artist: t.artist ? t.artist.name : "Artista desconocido",
+        album: t.album ? t.album.title : "",
+        cover: t.album ? (t.album.cover_medium || t.album.cover) : "",
+        duration: t.duration,
+        audio: t.preview
+      }))
+      .filter(t => t.audio);
+    state.onlineStatus = state.data.online.length ? "ok" : "empty";
+  } catch (e) {
+    if (myToken !== searchToken) return;
+    console.warn("Error búsqueda ONLINE", e);
+    state.data.online = [];
+    state.onlineStatus = "error";
+  }
+  render();
+}
+
+/* ---------- fin bloque ONLINE ---------- */
+
 async function switchPlaylist(key) {
   if (audio.src) { audio.pause(); audio.removeAttribute("src"); }
   state.playlist = key;
@@ -46,18 +103,41 @@ async function switchPlaylist(key) {
   el.title.textContent = CONFIG[key].name;
   el.desc.textContent = CONFIG[key].desc;
   el.search.value = "";
-  await loadManifest(key);
+
+  if (key === "online") {
+    el.search.placeholder = "Buscar canción, artista...";
+    state.data.online = [];
+    state.onlineStatus = "idle";
+  } else {
+    el.search.placeholder = "Buscar canción o artista...";
+    await loadManifest(key);
+  }
   render();
 }
 
 function render() {
   const list = base();
+  const online = state.playlist === "online";
   const q = el.search.value.trim().toLowerCase();
-  const filtered = list.filter(s => !q || [s.title, s.artist, s.album].join(" ").toLowerCase().includes(q));
+  const filtered = online ? list : list.filter(s => !q || [s.title, s.artist, s.album].join(" ").toLowerCase().includes(q));
 
   el.count.textContent = `${filtered.length} canciones`;
   el.side.textContent = `${state.data.jorge.length + state.data.djgeeorge.length} canciones`;
-  el.empty.style.display = list.length ? "none" : "block";
+
+  if (online) {
+    const status = state.onlineStatus;
+    const note = el.empty.querySelector(".empty-note");
+    const desc = el.empty.querySelector("p");
+    if (status === "loading") { el.empty.style.display = "block"; note.textContent = "Buscando..."; desc.textContent = ""; }
+    else if (status === "error") { el.empty.style.display = "block"; note.textContent = "Error al buscar"; desc.textContent = "Inténtalo de nuevo en unos segundos."; }
+    else if (status === "empty") { el.empty.style.display = "block"; note.textContent = "Sin resultados"; desc.textContent = "Prueba con otro título o artista."; }
+    else if (status === "idle") { el.empty.style.display = filtered.length ? "none" : "block"; note.textContent = "Busca música online"; desc.textContent = "Escribe un título o artista arriba (previews de 30s)."; }
+    else { el.empty.style.display = filtered.length ? "none" : "block"; }
+  } else {
+    el.empty.style.display = list.length ? "none" : "block";
+    el.empty.querySelector(".empty-note").textContent = "No hay canciones en esta playlist";
+    el.empty.querySelector("p").textContent = 'Mete MP3 en la carpeta "music" correspondiente y ejecuta ACTUALIZAR_BIBLIOTECA.command';
+  }
 
   el.songs.innerHTML = filtered.map((s, i) => {
     const realIndex = list.indexOf(s);
@@ -140,7 +220,16 @@ document.querySelectorAll(".nav-item").forEach(b => b.onclick = async () => {
   await switchPlaylist(b.dataset.playlist);
 });
 
-el.search.oninput = render;
+el.search.oninput = () => {
+  if (state.playlist === "online") {
+    clearTimeout(searchTimer);
+    const q = el.search.value.trim();
+    searchTimer = setTimeout(() => onlineSearch(q), 450);
+  } else {
+    render();
+  }
+};
+
 el.play.onclick = () => audio.paused ? play() : audio.pause();
 $("next").onclick = next;
 $("prev").onclick = prev;
@@ -158,23 +247,4 @@ el.volume.oninput = () => audio.volume = Number(el.volume.value);
 audio.volume = 0.85;
 
 audio.onloadedmetadata = () => el.total.textContent = fmt(audio.duration);
-audio.ontimeupdate = () => {
-  if (Number.isFinite(audio.duration)) {
-    el.progress.value = Math.round((audio.currentTime / audio.duration) * 1000);
-    el.elapsed.textContent = fmt(audio.currentTime);
-  }
-};
-audio.onplay = () => { el.play.textContent = "Ⅱ"; render(); };
-audio.onpause = () => { el.play.textContent = "▶"; render(); };
-audio.onended = () => state.repeat ? (audio.currentTime = 0, play()) : next();
-
-document.onkeydown = e => {
-  if (e.target.matches("input")) return;
-  if (e.code === "Space") { e.preventDefault(); audio.paused ? play() : audio.pause(); }
-};
-
-(async () => {
-  await loadManifest("jorge");
-  await loadManifest("djgeeorge");
-  render();
-})();
+audio.ontimeupdate =
