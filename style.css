@@ -42,7 +42,7 @@ body{padding-bottom:145px}
 .song-time{font-size:11px;color:#666;text-align:right}
 
 .empty{text-align:center;padding:80px 20px;color:#666}
-.empty-note{font-size:18px;color:#999;transition:opacity .15s}
+.empty-note{font-size:18px;color:#999}
 .empty p{font-size:13px}
 
 .player{position:fixed;z-index:10;left:0;right:0;bottom:0;min-height:145px;background:rgba(15,15,15,.97);backdrop-filter:blur(18px);border-top:1px solid #252525;display:grid;grid-template-columns:minmax(250px,1fr) minmax(420px,1.4fr) minmax(150px,1fr);gap:25px;align-items:center;padding:15px 28px}
