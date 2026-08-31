@@ -32,6 +32,14 @@
     "duration": 128.86
   },
   {
+    "title": "Criminal",
+    "artist": "C Marí",
+    "album": "Latin Lover Songs the Mixtape",
+    "audio": "playlist_jorge/music/0047 - Criminal.mp3",
+    "cover": "playlist_jorge/covers/0047 - Criminal.jpg",
+    "duration": 174.55
+  },
+  {
     "title": "GLOW UP",
     "artist": "Lewis Potter/Reddy",
     "album": "GLOW UP",
@@ -59,24 +67,24 @@
     "title": "POR ATRÁS",
     "artist": "Quevedo",
     "album": "POR ATRÁS",
-    "audio": "playlist_jorge/music/008 - POR ATRÁS.mp3",
-    "cover": "playlist_jorge/covers/008 - POR ATRÁS.jpg",
+    "audio": "playlist_jorge/music/008 - POR ATRÁS.mp3",
+    "cover": "playlist_jorge/covers/008 - POR ATRÁS.jpg",
     "duration": 171.73
   },
   {
     "title": "GÁLDAR",
     "artist": "Quevedo/Tonny Tun Tun",
     "album": "GÁLDAR",
-    "audio": "playlist_jorge/music/009 - GÁLDAR.mp3",
-    "cover": "playlist_jorge/covers/009 - GÁLDAR.jpg",
+    "audio": "playlist_jorge/music/009 - GÁLDAR.mp3",
+    "cover": "playlist_jorge/covers/009 - GÁLDAR.jpg",
     "duration": 182.96
   },
   {
     "title": "SOÑASTE CON UN DRACO",
     "artist": "Lucho RK/La Pantera",
     "album": "SOÑASTE CON UN DRACO",
-    "audio": "playlist_jorge/music/010 - SOÑASTE CON UN DRACO.mp3",
-    "cover": "playlist_jorge/covers/010 - SOÑASTE CON UN DRACO.jpg",
+    "audio": "playlist_jorge/music/010 - SOÑASTE CON UN DRACO.mp3",
+    "cover": "playlist_jorge/covers/010 - SOÑASTE CON UN DRACO.jpg",
     "duration": 201.72
   },
   {
@@ -147,8 +155,8 @@
     "title": "GUANTÁNAMO",
     "artist": "Yapi",
     "album": "GUANTÁNAMO",
-    "audio": "playlist_jorge/music/019 - GUANTÁNAMO.mp3",
-    "cover": "playlist_jorge/covers/019 - GUANTÁNAMO.jpg",
+    "audio": "playlist_jorge/music/019 - GUANTÁNAMO.mp3",
+    "cover": "playlist_jorge/covers/019 - GUANTÁNAMO.jpg",
     "duration": 154.88
   },
   {
@@ -299,8 +307,8 @@
     "title": "PREÑÁ",
     "artist": "Lucho RK/GIO",
     "album": "PREÑÁ",
-    "audio": "playlist_jorge/music/038 - PREÑÁ.mp3",
-    "cover": "playlist_jorge/covers/038 - PREÑÁ.jpg",
+    "audio": "playlist_jorge/music/038 - PREÑÁ.mp3",
+    "cover": "playlist_jorge/covers/038 - PREÑÁ.jpg",
     "duration": 208.77
   },
   {
@@ -339,16 +347,16 @@
     "title": "AQUÍ ESTOY",
     "artist": "Lucho RK/D3llano",
     "album": "AQUÍ ESTOY",
-    "audio": "playlist_jorge/music/043 - AQUÍ ESTOY.mp3",
-    "cover": "playlist_jorge/covers/043 - AQUÍ ESTOY.jpg",
+    "audio": "playlist_jorge/music/043 - AQUÍ ESTOY.mp3",
+    "cover": "playlist_jorge/covers/043 - AQUÍ ESTOY.jpg",
     "duration": 158.22
   },
   {
     "title": "Quiero más",
     "artist": "La Pantera",
     "album": "Quiero más",
-    "audio": "playlist_jorge/music/044 - Quiero más.mp3",
-    "cover": "playlist_jorge/covers/044 - Quiero más.jpg",
+    "audio": "playlist_jorge/music/044 - Quiero más.mp3",
+    "cover": "playlist_jorge/covers/044 - Quiero más.jpg",
     "duration": 151.09
   },
   {
