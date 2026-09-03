@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080808">
+<title>JORGEFLOW PLAYER</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="welcomeScreen" class="welcome-screen">
+  <div class="welcome-card">
+    <div class="eyebrow">JORGEFLOW PLAYER</div>
+    <h1>Hola, &iquest;qu&eacute; quieres escuchar?</h1>
+    <div class="welcome-options">
+      <button class="welcome-option" data-playlist="jorge">
+        <span class="welcome-option-icon">&#128274;</span>
+        <span class="welcome-option-title">PLAYLIST JORGE</span>
+        <span class="welcome-option-desc">Privada &middot; pide contrase&ntilde;a</span>
+      </button>
+      <button class="welcome-option" data-playlist="djgeeorge">
+        <span class="welcome-option-icon">&#9836;</span>
+        <span class="welcome-option-title">DJGEEORGE</span>
+        <span class="welcome-option-desc">Mashups, edits y producciones</span>
+      </button>
+      <button class="welcome-option" data-playlist="pedidas">
+        <span class="welcome-option-icon">&#128221;</span>
+        <span class="welcome-option-title">PEDIDAS</span>
+        <span class="welcome-option-desc">Canciones pedidas por la gente</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">JORGEFLOW<span>PLAYER</span></div>
+    <nav>
+      <button class="nav-item" data-playlist="jorge">&#9835; <span>PLAYLIST JORGE</span></button>
+      <button class="nav-item" data-playlist="djgeeorge">&#9836; <span>DJGEEORGE</span></button>
+      <button class="nav-item" data-playlist="pedidas">&#128221; <span>PEDIDAS</span></button>
+      <button id="requestNav" class="nav-item request-nav">&#9733; <span>PIDE TU CANCIÓN</span></button>
+    </nav>
+    <div class="side-bottom">
+      <div class="small-label">BIBLIOTECA LOCAL</div>
+      <div id="sideCount">0 canciones</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">TU BIBLIOTECA</div>
+        <h1 id="playlistTitle">PLAYLIST JORGE</h1>
+        <p id="playlistDescription">Tu música personal</p>
+      </div>
+      <button id="shuffleAll" class="outline-button">&#10600; Aleatorio</button>
+    </header>
+
+    <section class="search-row">
+      <div class="search"><span>&#8981;</span><input id="search" type="search" placeholder="Buscar canción o artista..."></div>
+      <div id="count" class="count">0 canciones</div>
+      <button id="queueButton" class="outline-button queue-button">COLA <span id="queueCount">0</span></button>
+    </section>
+
+    <section>
+      <div class="list-head"><span>#</span><span>TÍTULO</span><span>ÁLBUM</span><span>TIEMPO</span></div>
+      <div id="songs"></div>
+      <div id="empty" class="empty">
+        <div class="empty-note">No hay canciones en esta playlist</div>
+        <p>Mete MP3 en la carpeta "music" correspondiente y ejecuta ACTUALIZAR_BIBLIOTECA.command</p>
+      </div>
+    </section>
+    <section id="requestPanel" class="request-panel" hidden>
+      <div class="request-head">
+        <div>
+          <div class="eyebrow">PETICIONES</div>
+          <h2>PIDE TU CANCIÓN</h2>
+          <p>Busca una canción o escríbela y envíamela directamente.</p>
+        </div>
+        <button id="closeRequest" class="outline-button">Cerrar</button>
+      </div>
+      <div class="request-form">
+        <div class="search request-search"><span>&#8981;</span><input id="requestSearch" type="search" placeholder="Busca título, artista..."></div>
+        <div id="requestResults" class="request-results"></div>
+        <div class="manual-request">
+          <input id="manualRequest" type="text" placeholder="Si no aparece, escribe el título y artista">
+          <button id="sendRequest" class="outline-button">ENVIAR PETICIÓN</button>
+        </div>
+        <div id="requestStatus" class="request-status"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<aside id="queuePanel" class="queue-panel" hidden>
+  <div class="queue-head"><strong>COLA DE REPRODUCCIÓN</strong><button id="closeQueue">×</button></div>
+  <div id="queueList"></div>
+  <div id="queueEmpty" class="queue-empty">La cola está vacía</div>
+</aside>
+
+<div id="playerError" class="player-error" hidden>
+  <span id="playerErrorMsg"></span>
+  <div class="player-error-actions">
+    <button id="retryTrack" class="outline-button">Reintentar</button>
+    <button id="skipError" class="outline-button">Siguiente canción</button>
+  </div>
+</div>
+
+<footer class="player">
+  <div class="now">
+    <div class="cover"><img id="cover" alt=""><span id="coverFallback">&#9834;</span></div>
+    <div class="now-meta"><strong id="nowTitle">Nada reproduciéndose</strong><span id="nowArtist">Selecciona una canción</span></div>
+  </div>
+  <div class="player-center">
+    <div class="controls">
+      <button id="shuffle" class="secondary" title="Aleatorio">&#10600;</button>
+      <button id="prev" title="Anterior">&#9198;</button>
+      <button id="play" class="play">&#9658;</button>
+      <button id="next" title="Siguiente">&#9197;</button>
+      <button id="repeat" class="secondary" title="Repetir">&#8635;</button>
+    </div>
+    <div class="timeline"><span id="elapsed">0:00</span><input id="progress" type="range" min="0" max="1000" value="0"><span id="total">0:00</span></div>
+  </div>
+  <div class="vol">&#128266; <input id="volume" type="range" min="0" max="1" step=".01" value=".85"></div>
+</footer>
+
+<audio id="audio" preload="metadata"></audio>
+<div id="toast" class="toast"></div>
+<div id="passwordModal" class="password-modal" hidden>
+  <div class="password-card">
+    <div class="password-icon">🔒</div>
+    <div class="eyebrow">ZONA PRIVADA</div>
+    <h2>PLAYLIST JORGE</h2>
+    <p>Introduce la contraseña para acceder a esta playlist.</p>
+    <form id="passwordForm" autocomplete="off">
+      <input id="playlistPassword" type="password" inputmode="text" placeholder="Contraseña" aria-label="Contraseña" autocomplete="current-password">
+      <button type="submit" class="outline-button password-submit">ENTRAR</button>
+    </form>
+    <div id="passwordError" class="password-error"></div>
+    <button id="passwordCancel" class="password-cancel" type="button">Cancelar</button>
+  </div>
+</div>
+
+<script src="script.js" charset="utf-8"></script>
+</body>
+</html>
