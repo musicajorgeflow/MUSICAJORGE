@@ -43,8 +43,11 @@ const el = {
   passwordModal: $("passwordModal"), passwordForm: $("passwordForm"), passwordInput: $("playlistPassword"),
   passwordError: $("passwordError"), passwordCancel: $("passwordCancel"),
   playerError: $("playerError"), playerErrorMsg: $("playerErrorMsg"),
-  retryTrack: $("retryTrack"), skipError: $("skipError")
+  retryTrack: $("retryTrack"), skipError: $("skipError"),
+  welcomeScreen: $("welcomeScreen")
 };
+
+function hideWelcome() { el.welcomeScreen.hidden = true; }
 
 const ICON = { play: "\u25B6", pause: "\u2161", note: "\u266A" };
 
@@ -310,38 +313,45 @@ async function submitRequest(text) {
   }
 }
 
+// The previous version called unlockJorge() directly on nav click without
+// ever opening the modal, so it silently read an empty/stale password field.
+// That is why re-entering JORGE after visiting another playlist did nothing.
+// This version actually opens the modal and waits for the result.
+let passwordResolve = null;
+
 function openJorgePassword() {
   el.passwordModal.hidden = false;
   el.passwordInput.value = "";
   el.passwordError.textContent = "";
   setTimeout(() => el.passwordInput.focus(), 30);
+  return new Promise(resolve => { passwordResolve = resolve; });
 }
-function closeJorgePassword() {
+function closeJorgePassword(result) {
   el.passwordModal.hidden = true;
+  if (passwordResolve) { passwordResolve(result); passwordResolve = null; }
 }
-
-async function unlockJorge() {
+async function tryUnlock() {
   const hash = await sha256(el.passwordInput.value);
   if (hash !== JORGE_PASSWORD_HASH) {
     el.passwordError.textContent = "Contraseña incorrecta.";
     el.passwordInput.select();
-    return false;
+    return;
   }
-  closeJorgePassword();
-  return true;
+  closeJorgePassword(true);
 }
 
-document.querySelectorAll(".nav-item[data-playlist]").forEach(b => b.onclick = async () => {
-  const key = b.dataset.playlist;
+async function enterPlaylist(key) {
   if (key === "jorge") {
-    const ok = await unlockJorge();
+    const ok = await openJorgePassword();
     if (!ok) return;
   }
-  document.querySelectorAll(".nav-item").forEach(x => x.classList.remove("active"));
-  b.classList.add("active");
+  document.querySelectorAll(".nav-item[data-playlist]").forEach(x => x.classList.toggle("active", x.dataset.playlist === key));
   closeRequests();
+  hideWelcome();
   await switchPlaylist(key);
-});
+}
+
+document.querySelectorAll(".nav-item[data-playlist]").forEach(b => b.onclick = () => enterPlaylist(b.dataset.playlist));
 $("requestNav").onclick = () => {
   document.querySelectorAll(".nav-item").forEach(x => x.classList.remove("active"));
   $("requestNav").classList.add("active");
@@ -362,10 +372,10 @@ el.queueButton.onclick = () => { el.queuePanel.hidden = !el.queuePanel.hidden; r
 $("closeQueue").onclick = () => el.queuePanel.hidden = true;
 el.requestSearch.oninput = searchRequests;
 el.sendRequest.onclick = () => submitRequest(el.manualRequest.value);
-el.passwordForm.onsubmit = async e => { e.preventDefault(); await unlockJorge(); };
-el.passwordCancel.onclick = closeJorgePassword;
-el.passwordModal.onclick = e => { if (e.target === el.passwordModal) closeJorgePassword(); };
-el.passwordInput.onkeydown = e => { if (e.key === "Escape") closeJorgePassword(); };
+el.passwordForm.onsubmit = async e => { e.preventDefault(); await tryUnlock(); };
+el.passwordCancel.onclick = () => closeJorgePassword(false);
+el.passwordModal.onclick = e => { if (e.target === el.passwordModal) closeJorgePassword(false); };
+el.passwordInput.onkeydown = e => { if (e.key === "Escape") closeJorgePassword(false); };
 
 el.progress.oninput = () => { if (Number.isFinite(audio.duration)) audio.currentTime = (Number(el.progress.value) / 1000) * audio.duration; };
 el.volume.oninput = () => audio.volume = Number(el.volume.value);
@@ -414,7 +424,11 @@ document.onkeydown = e => {
   if (e.code === "Space") { e.preventDefault(); audio.paused ? play() : audio.pause(); }
 };
 
+document.querySelectorAll("#welcomeScreen [data-playlist]").forEach(b => b.onclick = () => enterPlaylist(b.dataset.playlist));
+
 (async () => {
   await Promise.all(Object.keys(CONFIG).map(loadManifest));
-  render();
+  // Do NOT render/reveal any playlist until the user chooses one on the
+  // welcome screen — this is what used to let JORGE's songs show up on
+  // load with no password prompt at all.
 })();
