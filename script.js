@@ -1,6 +1,6 @@
 const CONFIG = {
-  jorge: { name: "PLAYLIST JORGE", desc: "Tu música personal", manifest: "playlist_jorge/library.json" },
-  djgeeorge: { name: "DJGEEORGE", desc: "Mashups, edits y producciones de DJGEEORGE", manifest: "playlist_djgeeorge/library.json" }
+  jorge: { name: "PLAYLIST JORGE", desc: "mi playlist guapa ke lo flipas", manifest: "playlist_jorge/library.json" },
+  djgeeorge: { name: "DJGEEORGE", desc: "Mashups", manifest: "playlist_djgeeorge/library.json" }
 };
 
 const state = { playlist: "jorge", data: { jorge: [], djgeeorge: [] }, current: -1, shuffle: false, repeat: false };
