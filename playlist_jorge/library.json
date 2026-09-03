@@ -59,24 +59,24 @@
     "title": "POR ATRÁS",
     "artist": "Quevedo",
     "album": "POR ATRÁS",
-    "audio": "playlist_jorge/music/008%20-%20POR%20ATRA%CC%81S.mp3",
-    "cover": "playlist_jorge/covers/008%20-%20POR%20ATRA%CC%81S.jpg",
+    "audio": "playlist_jorge/music/008%20-%20POR%20ATRA%E2%95%A0%C3%BCS.mp3",
+    "cover": "playlist_jorge/covers/008%20-%20POR%20ATRA%E2%95%A0%C3%BCS.jpg",
     "duration": 171.73
   },
   {
     "title": "GÁLDAR",
     "artist": "Quevedo/Tonny Tun Tun",
     "album": "GÁLDAR",
-    "audio": "playlist_jorge/music/009%20-%20GA%CC%81LDAR.mp3",
-    "cover": "playlist_jorge/covers/009%20-%20GA%CC%81LDAR.jpg",
+    "audio": "playlist_jorge/music/009%20-%20GA%E2%95%A0%C3%BCLDAR.mp3",
+    "cover": "playlist_jorge/covers/009%20-%20GA%E2%95%A0%C3%BCLDAR.jpg",
     "duration": 182.96
   },
   {
     "title": "SOÑASTE CON UN DRACO",
     "artist": "Lucho RK/La Pantera",
     "album": "SOÑASTE CON UN DRACO",
-    "audio": "playlist_jorge/music/010%20-%20SON%CC%83ASTE%20CON%20UN%20DRACO.mp3",
-    "cover": "playlist_jorge/covers/010%20-%20SON%CC%83ASTE%20CON%20UN%20DRACO.jpg",
+    "audio": "playlist_jorge/music/010%20-%20SON%E2%95%A0%C3%A2ASTE%20CON%20UN%20DRACO.mp3",
+    "cover": "playlist_jorge/covers/010%20-%20SON%E2%95%A0%C3%A2ASTE%20CON%20UN%20DRACO.jpg",
     "duration": 201.72
   },
   {
@@ -147,8 +147,8 @@
     "title": "GUANTÁNAMO",
     "artist": "Yapi",
     "album": "GUANTÁNAMO",
-    "audio": "playlist_jorge/music/019%20-%20GUANTA%CC%81NAMO.mp3",
-    "cover": "playlist_jorge/covers/019%20-%20GUANTA%CC%81NAMO.jpg",
+    "audio": "playlist_jorge/music/019%20-%20GUANTA%E2%95%A0%C3%BCNAMO.mp3",
+    "cover": "playlist_jorge/covers/019%20-%20GUANTA%E2%95%A0%C3%BCNAMO.jpg",
     "duration": 154.88
   },
   {
@@ -299,8 +299,8 @@
     "title": "PREÑÁ",
     "artist": "Lucho RK/GIO",
     "album": "PREÑÁ",
-    "audio": "playlist_jorge/music/038%20-%20PREN%CC%83A%CC%81.mp3",
-    "cover": "playlist_jorge/covers/038%20-%20PREN%CC%83A%CC%81.jpg",
+    "audio": "playlist_jorge/music/038%20-%20PREN%E2%95%A0%C3%A2A%E2%95%A0%C3%BC.mp3",
+    "cover": "playlist_jorge/covers/038%20-%20PREN%E2%95%A0%C3%A2A%E2%95%A0%C3%BC.jpg",
     "duration": 208.77
   },
   {
@@ -339,16 +339,16 @@
     "title": "AQUÍ ESTOY",
     "artist": "Lucho RK/D3llano",
     "album": "AQUÍ ESTOY",
-    "audio": "playlist_jorge/music/043%20-%20AQUI%CC%81%20ESTOY.mp3",
-    "cover": "playlist_jorge/covers/043%20-%20AQUI%CC%81%20ESTOY.jpg",
+    "audio": "playlist_jorge/music/043%20-%20AQUI%E2%95%A0%C3%BC%20ESTOY.mp3",
+    "cover": "playlist_jorge/covers/043%20-%20AQUI%E2%95%A0%C3%BC%20ESTOY.jpg",
     "duration": 158.22
   },
   {
     "title": "Quiero más",
     "artist": "La Pantera",
     "album": "Quiero más",
-    "audio": "playlist_jorge/music/044%20-%20Quiero%20ma%CC%81s.mp3",
-    "cover": "playlist_jorge/covers/044%20-%20Quiero%20ma%CC%81s.jpg",
+    "audio": "playlist_jorge/music/044%20-%20Quiero%20ma%E2%95%A0%C3%BCs.mp3",
+    "cover": "playlist_jorge/covers/044%20-%20Quiero%20ma%E2%95%A0%C3%BCs.jpg",
     "duration": 151.09
   },
   {
@@ -366,5 +366,37 @@
     "audio": "playlist_jorge/music/046%20-%20ONDE%20MI.mp3",
     "cover": "playlist_jorge/covers/046%20-%20ONDE%20MI.jpg",
     "duration": 163.37
+  },
+  {
+    "title": "Espiral LOVE <3",
+    "artist": "Aïssa",
+    "album": "EstapasandoBB",
+    "audio": "playlist_jorge/music/Ai%CC%88ssa-Espiral-LOVE-3.mp3",
+    "cover": "",
+    "duration": 161.31
+  },
+  {
+    "title": "NO EST(hoy)BB",
+    "artist": "Aïssa",
+    "album": "EstapasandoBB",
+    "audio": "playlist_jorge/music/Ai%CC%88ssa-NO-EST_hoy_BB.mp3",
+    "cover": "",
+    "duration": 145.55
+  },
+  {
+    "title": "PLAYLIST",
+    "artist": "Alex Brown",
+    "album": "PLAYLIST",
+    "audio": "playlist_jorge/music/Alex-Brown-PLAYLIST.mp3",
+    "cover": "",
+    "duration": 124.34
+  },
+  {
+    "title": "Criminal",
+    "artist": "C Marí",
+    "album": "Latin Lover Songs the Mixtape",
+    "audio": "playlist_jorge/music/C%20Mari%CC%81%20-%20Criminal%20.mp3",
+    "cover": "playlist_jorge/covers/C%20Mari%CC%81%20-%20Criminal%20.jpg",
+    "duration": 174.55
   }
 ]
