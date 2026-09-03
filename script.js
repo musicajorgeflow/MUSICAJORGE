@@ -7,6 +7,9 @@ const CONFIG = {
 const REQUEST_CONFIG = {
   // Static GitHub Pages cannot safely send email by itself. FormSubmit acts as
   // the tiny mail gateway: each request is delivered to this inbox.
+  // NOTE: the very first submission after (re)configuring this address will
+  // make FormSubmit send a one-time "confirm your email" message to it; that
+  // confirmation link must be clicked once before requests start arriving.
   endpoint: "https://formsubmit.co/jorgebolearomero@gmail.com",
 };
 
@@ -38,7 +41,9 @@ const el = {
   requestPanel: $("requestPanel"), requestSearch: $("requestSearch"), requestResults: $("requestResults"),
   manualRequest: $("manualRequest"), sendRequest: $("sendRequest"), requestStatus: $("requestStatus"),
   passwordModal: $("passwordModal"), passwordForm: $("passwordForm"), passwordInput: $("playlistPassword"),
-  passwordError: $("passwordError"), passwordCancel: $("passwordCancel")
+  passwordError: $("passwordError"), passwordCancel: $("passwordCancel"),
+  playerError: $("playerError"), playerErrorMsg: $("playerErrorMsg"),
+  retryTrack: $("retryTrack"), skipError: $("skipError")
 };
 
 const ICON = { play: "\u25B6", pause: "\u2161", note: "\u266A" };
@@ -139,7 +144,7 @@ function load(i, auto = false) {
   if (!s) return;
   state.current = i;
   state.currentTrack = s;
-  lastErrorIndex = -1;
+  hidePlaybackError();
   audio.src = s.audio;
   setNow(s);
   render();
@@ -228,7 +233,6 @@ async function searchRequests() {
   const q = el.requestSearch.value.trim();
   if (!q) return renderRequestResults([]);
   // iTunes Search API is used only as a public music catalogue/search source.
-  // Audio is never loaded from it and YouTube is never used.
   try {
     const r = await fetch("https://itunes.apple.com/search?term=" + encodeURIComponent(q) + "&entity=song&limit=8");
     const j = await r.json();
@@ -259,10 +263,24 @@ async function sha256(text) {
   return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+function backupRequestLocally(text) {
+  // Backup ONLY: used solely so a failed send is never silently lost. The
+  // real delivery is always the external FormSubmit request above.
+  try {
+    const key = "jorgeflow_pending_requests";
+    const pending = JSON.parse(localStorage.getItem(key) || "[]");
+    pending.push({ text, date: new Date().toISOString() });
+    localStorage.setItem(key, JSON.stringify(pending));
+  } catch (e) {
+    console.warn("No se pudo guardar la petición de respaldo en localStorage", e);
+  }
+}
+
 async function submitRequest(text) {
   text = String(text || "").trim();
   if (!text) return show("Escribe o selecciona una canción.");
   el.requestStatus.textContent = "Enviando petición...";
+  el.requestStatus.classList.remove("is-error", "is-ok");
   el.sendRequest.disabled = true;
 
   try {
@@ -278,12 +296,15 @@ async function submitRequest(text) {
     });
     if (!r.ok) throw new Error("HTTP " + r.status);
     el.requestStatus.textContent = "✓ Petición enviada correctamente.";
+    el.requestStatus.classList.add("is-ok");
     el.manualRequest.value = "";
     show("Petición enviada ✓");
   } catch (err) {
     console.error("No se pudo enviar la petición", err);
-    el.requestStatus.textContent = "No se pudo enviar. Comprueba tu conexión y vuelve a intentarlo.";
-    show("No se ha enviado la petición");
+    backupRequestLocally(text);
+    el.requestStatus.textContent = "Error al enviar la petición. Se ha guardado localmente; vuelve a intentarlo cuando tengas conexión.";
+    el.requestStatus.classList.add("is-error");
+    show("Error al enviar la petición");
   } finally {
     el.sendRequest.disabled = false;
   }
@@ -356,18 +377,36 @@ audio.ontimeupdate = () => {
     el.elapsed.textContent = fmt(audio.currentTime);
   }
 };
-audio.onplay = () => { el.play.textContent = ICON.pause; render(); };
+audio.onplay = () => { el.play.textContent = ICON.pause; hidePlaybackError(); render(); };
 audio.onpause = () => { el.play.textContent = ICON.play; render(); };
 audio.onended = () => state.repeat ? (audio.currentTime = 0, play()) : next();
 
-let lastErrorIndex = -1;
+function hidePlaybackError() {
+  el.playerError.hidden = true;
+}
+function showPlaybackError() {
+  const title = state.currentTrack ? state.currentTrack.title : "esta canción";
+  el.playerErrorMsg.textContent = `No se pudo reproducir "${title}". El archivo puede no estar disponible o ha fallado la conexión.`;
+  el.playerError.hidden = false;
+  el.play.textContent = ICON.play;
+}
+
+// A failed track NEVER changes the song by itself: it stays on screen with a
+// clear error and explicit "Reintentar" / "Siguiente canción" actions, so a
+// broken file never looks like it silently skipped to something else.
 audio.onerror = () => {
-  if (state.current < 0 && !state.currentTrack) return;
-  const key = state.currentTrack ? state.currentTrack.audio : "";
-  if (key === lastErrorIndex) return;
-  lastErrorIndex = key;
-  show(`No se pudo cargar "${state.currentTrack ? state.currentTrack.title : "esta canción"}", pasando a la siguiente...`);
-  setTimeout(next, 1200);
+  if (!state.currentTrack) return;
+  showPlaybackError();
+};
+el.retryTrack.onclick = () => {
+  if (!state.currentTrack) return;
+  hidePlaybackError();
+  audio.src = state.currentTrack.audio;
+  play();
+};
+el.skipError.onclick = () => {
+  hidePlaybackError();
+  next();
 };
 
 document.onkeydown = e => {
