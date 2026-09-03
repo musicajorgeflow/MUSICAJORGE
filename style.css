@@ -177,3 +177,17 @@ input[type=range]{accent-color:#fff}
 .cover-missing{display:flex;align-items:center;justify-content:center;color:#666;font-size:18px}
 button:disabled{opacity:.45;cursor:wait}
 @media(max-width:600px){.password-card{padding:24px}.password-card form{flex-direction:column}.password-submit{width:100%}}
+
+/* Welcome / entry screen */
+.welcome-screen{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:24px;background:#080808}
+.welcome-screen[hidden]{display:none}
+.welcome-card{width:min(560px,100%);text-align:center}
+.welcome-card h1{margin:10px 0 30px;font-size:30px;letter-spacing:.3px}
+.welcome-options{display:grid;gap:12px}
+.welcome-option{display:flex;align-items:center;gap:14px;text-align:left;padding:16px 18px;border:1px solid #262626;border-radius:14px;background:#111;color:#f5f5f5;cursor:pointer}
+.welcome-option:hover{background:#181818;border-color:#3a3a3a}
+.welcome-option-icon{font-size:22px;flex:none;width:30px;text-align:center}
+.welcome-option-title{font-weight:750;font-size:15px}
+.welcome-option-desc{display:block;margin-top:2px;color:#777;font-size:12px}
+.welcome-option-title,.welcome-option-desc{display:block}
+@media(max-width:600px){.welcome-card h1{font-size:24px}.welcome-option{padding:14px}}
