@@ -7,7 +7,7 @@ const CONFIG = {
 const REQUEST_CONFIG = {
   // Static GitHub Pages cannot safely send email by itself. FormSubmit acts as
   // the tiny mail gateway: each request is delivered to this inbox.
-  endpoint: "https://formsubmit.co/ajax/jorgebolearomero@gmail.com",
+  endpoint: "https://formsubmit.co/jorgebolearomero@gmail.com",
 };
 
 // This is a client-side access gate (GitHub Pages is static). It keeps the
