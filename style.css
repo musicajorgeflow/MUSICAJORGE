@@ -79,6 +79,7 @@ input[type=range]{accent-color:#fff}
   .now{position:absolute;top:9px;left:15px;right:15px}
   .player-center{padding-top:70px}
   .vol{display:none}
+  .player-error{bottom:150px}
   .topbar h1{font-size:25px}
   .list-head{grid-template-columns:35px minmax(0,1fr) 55px}
   .song{grid-template-columns:35px minmax(0,1fr) 55px}
@@ -136,6 +137,14 @@ input[type=range]{accent-color:#fff}
 .manual-request{display:flex;gap:8px;margin-top:14px}
 .manual-request input{min-width:0;flex:1;height:42px;background:#151515;border:1px solid #242424;border-radius:9px;padding:0 12px;color:#fff;outline:0}
 .request-status{min-height:18px;margin-top:10px;color:#777;font-size:11px}
+.request-status.is-ok{color:#8fe0a8}
+.request-status.is-error{color:#f0a3a3}
+
+.player-error{position:fixed;left:0;right:0;bottom:145px;z-index:15;background:#2a1414;border-top:1px solid #4a2020;color:#ffdada;padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;font-size:12px;text-align:center}
+.player-error[hidden]{display:none}
+.player-error-actions{display:flex;gap:8px}
+.player-error .outline-button{padding:6px 12px;font-size:11px;border-color:#5a2a2a;color:#ffdada}
+.player-error .outline-button:hover{background:#3a1a1a}
 
 @media(max-width:900px){
   .song{grid-template-columns:35px minmax(0,1fr) 55px 70px}
