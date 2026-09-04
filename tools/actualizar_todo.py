@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-UN SOLO SCRIPT que hace todo el trabajo:
+ACTUALIZAR_TODO — SOLO GENERACION DE JSON
 
-  1. Lee tus MP3/WAV/FLAC/M4A/OGG de music/, saca titulo, artista,
-     album, duracion y caratula, y genera library.json.
-  2. Si tools/config.json tiene las claves de Cloudflare R2 rellenas,
-     sube automaticamente el audio nuevo o modificado al bucket
-     (usando la API, sin necesidad de entrar a la web de Cloudflare).
-  3. Si esta carpeta es un repositorio git ya conectado a GitHub,
-     hace commit y push automaticamente de los cambios de la web
-     (library.json, caratulas, codigo) — nunca del audio, que se
-     queda excluido por .gitignore.
+Este script hace UNA sola cosa: leer los archivos de audio que ya
+tienes en music/ dentro de cada playlist y (re)generar el
+library.json correspondiente con la informacion que tu web
+necesita (titulo, artista, album, duracion, caratula y ruta al
+archivo de audio).
+
+NO copia, mueve, borra ni convierte audio.
+NO toca Cloudflare / R2.
+NO toca Git / GitHub.
+NO modifica HTML/CSS/JS.
 
 Uso: doble clic en ACTUALIZAR_TODO.command (este script no se
 ejecuta directamente).
@@ -25,8 +26,31 @@ import sys
 import unicodedata
 
 ROOT = Path(__file__).resolve().parents[1]
-STATE_FILE = ROOT / "tools" / ".upload_state.json"
 AUDIO_EXT = {".mp3", ".m4a", ".flac", ".wav", ".aac", ".ogg", ".opus"}
+COVER_EXT = {".jpg", ".jpeg", ".png", ".webp"}
+PLAYLISTS = ["playlist_jorge", "playlist_djgeeorge", "playlist_pedidas"]
+
+# De donde se leen los audios de cada playlist, relativo a su carpeta.
+# "" significa: directamente dentro de playlist_xxx/ (sin subcarpeta music/).
+AUDIO_SOURCE = {
+    "playlist_jorge": "music",
+    "playlist_djgeeorge": "",
+    "playlist_pedidas": "music",
+}
+
+# Playlists que usan UNA sola caratula fija para todas sus canciones,
+# en vez de sacar la caratula de cada archivo de audio.
+FIXED_COVER_PLAYLISTS = {"playlist_djgeeorge"}
+
+# Nombres de archivo que se buscan (en ese orden) dentro de
+# playlist_xxx/covers/ para las playlists de caratula fija.
+FIXED_COVER_CANDIDATES = [
+    "portada.jpg", "portada.jpeg", "portada.png",
+    "cover.jpg", "cover.jpeg", "cover.png",
+]
+
+# Archivos basura que nunca deben contarse ni generar caratulas/ruido
+JUNK_NAMES = {".ds_store", "thumbs.db", "desktop.ini"}
 
 
 def ensure(package, import_name=None):
@@ -46,7 +70,11 @@ from mutagen.mp4 import MP4
 from mutagen.wave import WAVE
 
 
-# ---------- metadatos y caratulas ----------
+# ---------- utilidades ----------
+
+def is_junk(path: Path) -> bool:
+    return path.name.lower() in JUNK_NAMES or path.name.startswith("._")
+
 
 def first(tags, key, default=""):
     if tags is None:
@@ -72,6 +100,8 @@ def save_bytes(data, mime, out_dir, stem):
     out.write_bytes(data)
     return out
 
+
+# ---------- caratulas ----------
 
 def cover_from_id3_frames(id3_tags, out_dir, stem):
     if id3_tags is None:
@@ -134,65 +164,103 @@ def extract_cover(path, out_dir):
     return None
 
 
-def load_config():
-    cfg_path = ROOT / "tools" / "config.json"
-    default = {
-        "r2": {"account_id": "", "access_key_id": "", "secret_access_key": "", "bucket": "", "public_base_url": ""},
-        "jorge": {"r2_folder": "jorge"},
-        "djgeeorge": {"r2_folder": "djgeeorge"},
-        "pedidas": {"r2_folder": "pedidas"},
-    }
-    if not cfg_path.exists():
-        return default
-    try:
-        data = json.loads(cfg_path.read_text(encoding="utf-8"))
-        for k, v in default.items():
-            data.setdefault(k, v)
-        return data
-    except Exception:
-        return default
+def find_manual_cover(covers_dir, stem):
+    """Si el audio no trae caratula embebida, reutiliza una puesta a mano
+    en covers/ con el mismo nombre (sin distinguir mayusculas/acentos)."""
+    stem_key = unicodedata.normalize("NFC", stem).casefold()
+    for candidate in covers_dir.iterdir():
+        if not candidate.is_file() or is_junk(candidate):
+            continue
+        if candidate.suffix.lower() not in COVER_EXT:
+            continue
+        if unicodedata.normalize("NFC", candidate.stem).casefold() == stem_key:
+            return candidate
+    return None
 
 
-def r2_ready(cfg):
-    r2 = cfg.get("r2", {})
-    return all(r2.get(k) for k in ("account_id", "access_key_id", "secret_access_key", "bucket", "public_base_url"))
+def find_fixed_cover(covers_dir):
+    """Para playlists de caratula fija (p.ej. DJGEEORGE): busca una imagen
+    con nombre conocido (portada.jpg, cover.jpg, etc.) en covers/. Si no
+    hay ninguna con esos nombres pero hay EXACTAMENTE una imagen suelta
+    en la carpeta, se usa esa."""
+    if not covers_dir.exists():
+        return None
+    for name in FIXED_COVER_CANDIDATES:
+        p = covers_dir / name
+        if p.exists() and p.is_file():
+            return p
+    imgs = [
+        p for p in covers_dir.iterdir()
+        if p.is_file() and not is_junk(p) and p.suffix.lower() in COVER_EXT
+    ]
+    if len(imgs) == 1:
+        return imgs[0]
+    return None
 
 
 def fetch_itunes_cover(title, artist, out_dir, stem):
-    """Best-effort artwork fallback for files without embedded/manual covers."""
+    """Ultimo recurso: busca una caratula publica en iTunes si no hay
+    ninguna embebida ni puesta a mano. No sube nada a ningun sitio,
+    solo descarga una imagen para guardarla en covers/."""
     import urllib.parse
     import urllib.request
     try:
         term = urllib.parse.quote(f"{artist} {title}")
-        with urllib.request.urlopen(f"https://itunes.apple.com/search?term={term}&entity=song&limit=1", timeout=8) as resp:
+        url = f"https://itunes.apple.com/search?term={term}&entity=song&limit=1"
+        with urllib.request.urlopen(url, timeout=8) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         results = data.get("results") or []
         if not results or not results[0].get("artworkUrl100"):
             return None
-        url = results[0]["artworkUrl100"].replace("100x100bb", "600x600bb")
-        with urllib.request.urlopen(url, timeout=10) as resp:
+        art_url = results[0]["artworkUrl100"].replace("100x100bb", "600x600bb")
+        with urllib.request.urlopen(art_url, timeout=10) as resp:
             data = resp.read()
         return save_bytes(data, "image/jpeg", out_dir, stem)
     except Exception as e:
-        print(f"  Carátula automática no disponible para {title}: {e}")
+        print(f"    (sin caratula automatica para '{title}': {e})")
         return None
 
 
-def generate_library(folder, r2_folder, cfg):
-    music = ROOT / folder / "music"
-    covers = ROOT / folder / "covers"
-    covers.mkdir(parents=True, exist_ok=True)
-    music.mkdir(parents=True, exist_ok=True)
+# ---------- generacion de un library.json ----------
 
-    remote = r2_ready(cfg)
-    base_url = ""
-    if remote:
-        base_url = cfg["r2"]["public_base_url"].rstrip("/") + "/" + r2_folder.strip("/") + "/"
+def generate_library(folder):
+    playlist_dir = ROOT / folder
+    source_sub = AUDIO_SOURCE.get(folder, "music")
+    music = playlist_dir / source_sub if source_sub else playlist_dir
+    covers = playlist_dir / "covers"
+
+    if not music.exists():
+        print(f"  [!] {folder}: no existe la carpeta '{music.relative_to(ROOT)}', se omite.")
+        return 0
+
+    covers.mkdir(parents=True, exist_ok=True)
+
+    fixed_cover = None
+    if folder in FIXED_COVER_PLAYLISTS:
+        fixed_cover = find_fixed_cover(covers)
+        if fixed_cover:
+            print(f"   Caratula fija para todas las canciones: {fixed_cover.name}")
+        else:
+            candidatos = ", ".join(FIXED_COVER_CANDIDATES[:3])
+            print(f"   [!] No hay caratula fija en {covers.relative_to(ROOT)}/.")
+            print(f"       Pon ahi una imagen llamada '{candidatos.split(', ')[0]}' (o similar: {candidatos}).")
+
+    def path_is_inside_covers(p):
+        # Nunca leer audio dentro de la carpeta covers/, aunque este anidada.
+        rel_parts = p.relative_to(playlist_dir).parts
+        return any(part.lower() == "covers" for part in rel_parts[:-1])
+
+    audio_files = sorted(
+        (
+            p for p in music.rglob("*")
+            if p.is_file() and not is_junk(p) and p.suffix.lower() in AUDIO_EXT
+            and not path_is_inside_covers(p)
+        ),
+        key=lambda x: x.name.lower(),
+    )
 
     tracks = []
-    for path in sorted(music.rglob("*"), key=lambda x: x.name.lower()):
-        if not path.is_file() or path.suffix.lower() not in AUDIO_EXT:
-            continue
+    for path in audio_files:
         try:
             f_easy = File(path, easy=True)
             title = (first(f_easy, "title") or path.stem).strip()
@@ -202,137 +270,56 @@ def generate_library(folder, r2_folder, cfg):
         except Exception:
             title, artist, album, duration = path.stem, "Artista desconocido", "", 0.0
 
-        cover = extract_cover(path, covers)
-        # If the audio has no embedded artwork, keep/reuse a manually supplied
-        # cover with the same filename stem. This prevents the updater from
-        # silently turning an existing cover into an empty cover field.
-        if cover is None:
-            stem_key = unicodedata.normalize("NFC", path.stem).casefold()
-            candidates = [p for p in covers.iterdir() if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}]
-            for candidate in candidates:
-                if unicodedata.normalize("NFC", candidate.stem).casefold() == stem_key:
-                    cover = candidate
-                    break
-        if cover is None:
-            cover = fetch_itunes_cover(title, artist, covers, path.stem)
+        if folder in FIXED_COVER_PLAYLISTS:
+            # Nunca se saca caratula individual de cada mp3 en esta playlist:
+            # todas comparten la misma imagen (o ninguna, si aun no la has puesto).
+            cover = fixed_cover
+        else:
+            cover = extract_cover(path, covers)
+            if cover is None:
+                cover = find_manual_cover(covers, path.stem)
+            if cover is None:
+                cover = fetch_itunes_cover(title, artist, covers, path.stem)
+
         rel = lambda p: str(p.relative_to(ROOT)).replace("\\", "/")
-        # IMPORTANT: local (relative) paths must be percent-encoded too, exactly
-        # like the remote R2 URL already is. Without this, filenames containing
-        # characters such as "#", "?", "%" or "&" produce broken URLs (a "#"
-        # gets treated as a fragment and cuts the URL short, etc.), which is
-        # why some songs would load with no audio and/or no cover art.
-        remote_name = unicodedata.normalize("NFC", path.name)
-        audio_field = (base_url + quote(remote_name)) if remote else quote(rel(path), safe="/")
+        # Igual que la ruta remota, la ruta local tambien se escapa con
+        # percent-encoding para que nombres con "#", "&", "?", "%", etc.
+        # no rompan la URL dentro de la web.
+        audio_field = quote(rel(path), safe="/")
 
         tracks.append({
-            "title": title, "artist": artist, "album": album,
+            "title": title,
+            "artist": artist,
+            "album": album,
             "audio": audio_field,
             "cover": quote(rel(cover), safe="/") if cover else "",
             "duration": round(duration, 2),
         })
 
-    (ROOT / folder / "library.json").write_text(json.dumps(tracks, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"  {folder}: {len(tracks)} canciones")
-    return remote
-
-
-# ---------- subida a Cloudflare R2 ----------
-
-def load_state():
-    if STATE_FILE.exists():
-        try:
-            return json.loads(STATE_FILE.read_text(encoding="utf-8"))
-        except Exception:
-            return {}
-    return {}
-
-
-def save_state(state):
-    STATE_FILE.write_text(json.dumps(state, indent=2), encoding="utf-8")
-
-
-def upload_audio(cfg):
-    if not r2_ready(cfg):
-        print("\nCloudflare R2 no esta configurado todavia (tools/config.json).")
-        print("El audio se ha dejado apuntando a rutas locales.")
-        return
-
-    ensure("boto3")
-    import boto3
-
-    r2 = cfg["r2"]
-    client = boto3.client(
-        "s3",
-        endpoint_url=f"https://{r2['account_id']}.r2.cloudflarestorage.com",
-        aws_access_key_id=r2["access_key_id"],
-        aws_secret_access_key=r2["secret_access_key"],
+    (ROOT / folder / "library.json").write_text(
+        json.dumps(tracks, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-
-    state = load_state()
-    subido = 0
-    for folder, key in (("playlist_jorge", "jorge"), ("playlist_djgeeorge", "djgeeorge"), ("playlist_pedidas", "pedidas")):
-        r2_folder = cfg[key]["r2_folder"].strip("/")
-        music = ROOT / folder / "music"
-        for path in sorted(music.rglob("*")):
-            if not path.is_file() or path.suffix.lower() not in AUDIO_EXT:
-                continue
-            rel = str(path.relative_to(ROOT))
-            sig = f"{path.stat().st_size}-{int(path.stat().st_mtime)}"
-            # R2 object names are normalized to NFC so macOS Unicode filenames
-            # (e.g. accented characters) cannot point at a different object
-            # from the one stored in the bucket.
-            canonical_name = unicodedata.normalize("NFC", path.name)
-            object_key = f"{r2_folder}/{canonical_name}" if r2_folder else canonical_name
-            state_key = rel + "::object"
-            if state.get(rel) == sig and state.get(state_key) == object_key:
-                continue  # ya subido y sin cambios
-            print(f"  Subiendo: {path.name}")
-            client.upload_file(str(path), r2["bucket"], object_key)
-            state[rel] = sig
-            state[state_key] = object_key
-            subido += 1
-
-    save_state(state)
-    print(f"\n{subido} archivo(s) de audio subido(s) a Cloudflare R2." if subido else "\nEl audio ya estaba subido, sin cambios.")
-
-
-# ---------- git commit + push ----------
-
-def git_publish():
-    if not (ROOT / ".git").exists():
-        print("\nEsta carpeta todavia no es un repositorio de GitHub.")
-        print("Publicala una primera vez con GitHub Desktop y luego este")
-        print("script ya podra subir los cambios automaticamente.")
-        return
-    try:
-        subprocess.run(["git", "add", "-A"], cwd=ROOT, check=True)
-        diff = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=ROOT)
-        if diff.returncode == 0:
-            print("\nSin cambios que subir a GitHub.")
-            return
-        subprocess.run(["git", "commit", "-m", "Actualizar biblioteca"], cwd=ROOT, check=True)
-        subprocess.run(["git", "push"], cwd=ROOT, check=True)
-        print("\nCambios subidos a GitHub. La web publicada se actualizara en un par de minutos.")
-    except FileNotFoundError:
-        print("\nNo se encontro git en este Mac. Instala 'Herramientas de linea de comandos'")
-        print("de Xcode (te lo pedira macOS) o usa GitHub Desktop manualmente.")
-    except subprocess.CalledProcessError as e:
-        print("\nNo se pudo subir a GitHub automaticamente:", e)
-        print("Puedes hacerlo a mano abriendo GitHub Desktop.")
+    return len(tracks)
 
 
 if __name__ == "__main__":
-    cfg = load_config()
+    print("Generando/actualizando los archivos library.json...\n")
 
-    print("1) Leyendo canciones y generando library.json...")
-    generate_library("playlist_jorge", cfg["jorge"]["r2_folder"], cfg)
-    generate_library("playlist_djgeeorge", cfg["djgeeorge"]["r2_folder"], cfg)
-    generate_library("playlist_pedidas", cfg["pedidas"]["r2_folder"], cfg)
+    resumen = []
+    for folder in PLAYLISTS:
+        origen = AUDIO_SOURCE.get(folder, "music") or "(carpeta raiz de la playlist)"
+        print(f"-> {folder}/library.json   (leyendo audio de: {origen})")
+        n = generate_library(folder)
+        print(f"   {n} cancion(es) encontrada(s).\n")
+        resumen.append((folder, n))
 
-    print("\n2) Subiendo audio nuevo a Cloudflare R2...")
-    upload_audio(cfg)
-
-    print("\n3) Subiendo cambios a GitHub...")
-    git_publish()
-
-    print("\nListo. Todo actualizado.")
+    print("=" * 40)
+    print("RESUMEN")
+    print("=" * 40)
+    total = 0
+    for folder, n in resumen:
+        print(f"  {folder}: {n} cancion(es) -> {folder}/library.json")
+        total += n
+    print(f"\nTotal: {total} cancion(es) en {len(resumen)} playlist(s).")
+    print("\nListo. Solo se han generado/actualizado los JSON.")
+    print("Nada de audio, imagenes, Git ni Cloudflare ha sido tocado.")

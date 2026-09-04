@@ -2,7 +2,7 @@
 cd "$(dirname "$0")"
 echo ""
 echo "==================================="
-echo " DJGEEORGE PLAYER — ACTUALIZAR TODO"
+echo " DJGEEORGE PLAYER — ACTUALIZAR JSON"
 echo "==================================="
 echo ""
 
