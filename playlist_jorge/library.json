@@ -8,6 +8,14 @@
     "duration": 193.49
   },
   {
+    "title": "TRATRATRA",
+    "artist": "Anmi/Juseph/Aïssa",
+    "album": "TRATRATRA",
+    "audio": "playlist_jorge/music/001.Anmi%20-%20TRATRATRA.mp3",
+    "cover": "playlist_jorge/covers/001.Anmi%20-%20TRATRATRA.jpg",
+    "duration": 179.67
+  },
+  {
     "title": "WIMBLEDON",
     "artist": "Lewis Potter",
     "album": "WIMBLEDON",
@@ -59,24 +67,24 @@
     "title": "POR ATRÁS",
     "artist": "Quevedo",
     "album": "POR ATRÁS",
-    "audio": "playlist_jorge/music/008%20-%20POR%20ATRA%CC%81S.mp3",
-    "cover": "playlist_jorge/covers/008%20-%20POR%20ATRA%CC%81S.jpg",
+    "audio": "playlist_jorge/music/008%20-%20POR%20ATR%C3%81S.mp3",
+    "cover": "playlist_jorge/covers/008%20-%20POR%20ATR%C3%81S.jpg",
     "duration": 171.73
   },
   {
     "title": "GÁLDAR",
     "artist": "Quevedo/Tonny Tun Tun",
     "album": "GÁLDAR",
-    "audio": "playlist_jorge/music/009%20-%20GA%CC%81LDAR.mp3",
-    "cover": "playlist_jorge/covers/009%20-%20GA%CC%81LDAR.jpg",
+    "audio": "playlist_jorge/music/009%20-%20G%C3%81LDAR.mp3",
+    "cover": "playlist_jorge/covers/009%20-%20G%C3%81LDAR.jpg",
     "duration": 182.96
   },
   {
     "title": "SOÑASTE CON UN DRACO",
     "artist": "Lucho RK/La Pantera",
     "album": "SOÑASTE CON UN DRACO",
-    "audio": "playlist_jorge/music/010%20-%20SON%CC%83ASTE%20CON%20UN%20DRACO.mp3",
-    "cover": "playlist_jorge/covers/010%20-%20SON%CC%83ASTE%20CON%20UN%20DRACO.jpg",
+    "audio": "playlist_jorge/music/010%20-%20SO%C3%91ASTE%20CON%20UN%20DRACO.mp3",
+    "cover": "playlist_jorge/covers/010%20-%20SO%C3%91ASTE%20CON%20UN%20DRACO.jpg",
     "duration": 201.72
   },
   {
@@ -147,8 +155,8 @@
     "title": "GUANTÁNAMO",
     "artist": "Yapi",
     "album": "GUANTÁNAMO",
-    "audio": "playlist_jorge/music/019%20-%20GUANTA%CC%81NAMO.mp3",
-    "cover": "playlist_jorge/covers/019%20-%20GUANTA%CC%81NAMO.jpg",
+    "audio": "playlist_jorge/music/019%20-%20GUANT%C3%81NAMO.mp3",
+    "cover": "playlist_jorge/covers/019%20-%20GUANT%C3%81NAMO.jpg",
     "duration": 154.88
   },
   {
@@ -299,8 +307,8 @@
     "title": "PREÑÁ",
     "artist": "Lucho RK/GIO",
     "album": "PREÑÁ",
-    "audio": "playlist_jorge/music/038%20-%20PREN%CC%83A%CC%81.mp3",
-    "cover": "playlist_jorge/covers/038%20-%20PREN%CC%83A%CC%81.jpg",
+    "audio": "playlist_jorge/music/038%20-%20PRE%C3%91%C3%81.mp3",
+    "cover": "playlist_jorge/covers/038%20-%20PRE%C3%91%C3%81.jpg",
     "duration": 208.77
   },
   {
@@ -339,16 +347,16 @@
     "title": "AQUÍ ESTOY",
     "artist": "Lucho RK/D3llano",
     "album": "AQUÍ ESTOY",
-    "audio": "playlist_jorge/music/043%20-%20AQUI%CC%81%20ESTOY.mp3",
-    "cover": "playlist_jorge/covers/043%20-%20AQUI%CC%81%20ESTOY.jpg",
+    "audio": "playlist_jorge/music/043%20-%20AQU%C3%8D%20ESTOY.mp3",
+    "cover": "playlist_jorge/covers/043%20-%20AQU%C3%8D%20ESTOY.jpg",
     "duration": 158.22
   },
   {
     "title": "Quiero más",
     "artist": "La Pantera",
     "album": "Quiero más",
-    "audio": "playlist_jorge/music/044%20-%20Quiero%20ma%CC%81s.mp3",
-    "cover": "playlist_jorge/covers/044%20-%20Quiero%20ma%CC%81s.jpg",
+    "audio": "playlist_jorge/music/044%20-%20Quiero%20m%C3%A1s.mp3",
+    "cover": "playlist_jorge/covers/044%20-%20Quiero%20m%C3%A1s.jpg",
     "duration": 151.09
   },
   {
@@ -368,35 +376,35 @@
     "duration": 163.37
   },
   {
+    "title": "PLAYLIST",
+    "artist": "Alex Brown",
+    "album": "PLAYLIST",
+    "audio": "playlist_jorge/music/Alex-Brown-PLAYLIST.mp3",
+    "cover": "",
+    "duration": 124.34
+  },
+  {
     "title": "Espiral LOVE <3",
     "artist": "Aïssa",
     "album": "EstapasandoBB",
-    "audio": "playlist_jorge/music/Ai%CC%88ssa-Espiral-LOVE-3.mp3",
-    "cover": "playlist_jorge/covers/Ai%CC%88ssa-Espiral-LOVE-3.jpg",
+    "audio": "playlist_jorge/music/A%C3%AFssa-Espiral-LOVE-3.mp3",
+    "cover": "",
     "duration": 161.31
   },
   {
     "title": "NO EST(hoy)BB",
     "artist": "Aïssa",
     "album": "EstapasandoBB",
-    "audio": "playlist_jorge/music/Ai%CC%88ssa-NO-EST_hoy_BB.mp3",
-    "cover": "playlist_jorge/covers/Ai%CC%88ssa-NO-EST_hoy_BB.jpg",
+    "audio": "playlist_jorge/music/A%C3%AFssa-NO-EST_hoy_BB.mp3",
+    "cover": "",
     "duration": 145.55
-  },
-  {
-    "title": "PLAYLIST",
-    "artist": "Alex Brown",
-    "album": "PLAYLIST",
-    "audio": "playlist_jorge/music/Alex-Brown-PLAYLIST.mp3",
-    "cover": "playlist_jorge/covers/Alex-Brown-PLAYLIST.jpg",
-    "duration": 124.34
   },
   {
     "title": "Criminal",
     "artist": "C Marí",
     "album": "Latin Lover Songs the Mixtape",
-    "audio": "playlist_jorge/music/C%20Mari%CC%81%20-%20Criminal.mp3",
-    "cover": "playlist_jorge/covers/C%20Mari%CC%81%20-%20Criminal.jpg",
+    "audio": "playlist_jorge/music/C%20Mar%C3%AD%20-%20Criminal.mp3",
+    "cover": "playlist_jorge/covers/C%20Mar%C3%AD%20-%20Criminal.jpg",
     "duration": 174.55
   }
 ]
